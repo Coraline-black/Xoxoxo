@@ -3,192 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Snowball Pro: Derzkiy Snegovik</title>
+    <title>Snowball Learning: Derzkiy Edition</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #a0d8ef; font-family: 'Segoe UI', sans-serif; }
-        canvas { display: block; touch-action: none; }
-        #ui {
-            position: absolute; top: 20px; width: 100%;
-            display: flex; flex-direction: column; align-items: center;
-            pointer-events: none;
+        body { margin: 0; overflow: hidden; background: #b3e5fc; font-family: 'Arial', sans-serif; }
+        #game-ui {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; display: flex; flex-direction: column; align-items: center;
         }
-        .question-card {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 15px 25px; border-radius: 25px;
-            border: 4px solid #3498db; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            text-align: center; max-width: 80%;
+        .question-area {
+            margin-top: 30px; background: rgba(255,255,255,0.85);
+            padding: 20px; border-radius: 30px; border: 4px solid #0288d1;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1); width: 80%; text-align: center;
         }
-        h1 { color: #2c3e50; margin: 0; font-size: 20px; }
-        .score { color: #3498db; font-weight: bold; margin-top: 5px; }
+        h2 { color: #01579b; margin: 0; font-size: 22px; }
+        #score { position: absolute; bottom: 20px; right: 20px; font-weight: bold; color: white; text-shadow: 1px 1px 4px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
-
-    <div id="ui">
-        <div class="question-card">
-            <h1 id="questionText">Yükleniyor...</h1>
-            <div class="score" id="scoreText">Doğru: 0</div>
+    <div id="game-ui">
+        <div class="question-area">
+            <h2 id="qText">Yükleniyor...</h2>
         </div>
+        <div id="score">Puan: 0</div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
-
-    <script>
-        // --- ДАННЫЕ ИЗ УЧЕБНИКА ---
-        const questions = [
-            {q: "Güneş doğudan ____.", a: ["doğar", "batmaz", "yağar"], ok: 0},
-            {q: "Su yüz derecede ____.", a: ["akar", "kaynar", "döner"], ok: 1},
-            {q: "İstanbul'a kar ____ mı?", a: ["eser", "yağar", "yaşar"], ok: 1},
-            {q: "Newton ____ buldu.", a: ["yer çekimini", "depremi", "çığ"], ok: 0}
-        ];
-
-        let currentQ = 0;
-        let score = 0;
-
-        // --- НАСТРОЙКА 3D МИРА ---
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xd0e8f0);
-        scene.fog = new THREE.Fog(0xd0e8f0, 5, 30);
-
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        document.body.appendChild(renderer.domElement);
-
-        // Свет
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(ambientLight);
-        const sunLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        sunLight.position.set(5, 10, 7);
-        scene.add(sunLight);
-
-        // Земля и Сугробы
-        const groundGeo = new THREE.PlaneGeometry(100, 100);
-        const groundMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
-        const ground = new THREE.Mesh(groundGeo, groundMat);
-        ground.rotation.x = -Math.PI/2;
-        scene.add(ground);
-
-        // --- СОЗДАНИЕ ДЕРЗКОГО СНЕГОВИКА ---
-        function createDerzkiySnowman(x, text, id) {
-            const group = new THREE.Group();
-            const snowMat = new THREE.MeshStandardMaterial({ color: 0xf0faff });
-            const darkMat = new THREE.MeshStandardMaterial({ color: 0x333333 }); // Для "уставших" век
-
-            // Тело (уверенная осанка)
-            const body = new THREE.Mesh(new THREE.SphereGeometry(0.6, 20, 20), snowMat);
-            const head = new THREE.Mesh(new THREE.SphereGeometry(0.4, 20, 20), snowMat);
-            body.position.y = 0.6;
-            head.position.y = 1.4;
-            head.position.z = 0.1; // Голова вперед - дерзко
-            group.add(body, head);
-
-            // Уставшие глаза (веки)
-            const eyeGeo = new THREE.SphereGeometry(0.06, 12, 12);
-            const eyeL = new THREE.Mesh(eyeGeo, darkMat);
-            eyeL.position.set(-0.15, 1.5, 0.45);
-            eyeL.scale.y = 0.5; // Сплюснутые веки
-            group.add(eyeL);
-
-            const eyeR = new THREE.Mesh(eyeGeo, darkMat);
-            eyeR.position.set(0.15, 1.5, 0.45);
-            eyeR.scale.y = 0.5;
-            group.add(eyeR);
-
-            // Морковка (задрана вверх)
-            const nose = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.2), new THREE.MeshStandardMaterial({color: "orange"}));
-            nose.position.set(0, 1.4, 0.5);
-            nose.rotation.x = Math.PI/1.7;
-            group.add(nose);
-
-            // Текст над головой (Canvas Texture)
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 256; canvas.height = 128;
-            ctx.fillStyle = '#2c3e50'; ctx.font = 'bold 50px Arial';
-            ctx.textAlign = 'center'; ctx.fillText(text.toUpperCase(), 128, 80);
-            
-            const txtMat = new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas) });
-            const sprite = new THREE.Sprite(txtMat);
-            sprite.position.y = 2.2; sprite.scale.set(1.5, 0.75, 1);
-            group.add(sprite);
-
-            group.position.set(x, 0, -4);
-            group.userData = { id: id, originalX: x };
-            scene.add(group);
-            return group;
-        }
-
-        let snowmen = [];
-        function initRound() {
-            const data = questions[currentQ];
-            document.getElementById('questionText').innerText = data.q;
-            snowmen.forEach(s => scene.remove(s));
-            snowmen = [];
-            
-            const positions = [-2.5, 0, 2.5];
-            data.a.forEach((txt, i) => {
-                snowmen.push(createDerzkiySnowman(positions[i], txt, i));
-            });
-        }
-
-        camera.position.set(0, 1.6, 2);
-
-        // --- БРОСОК СНЕЖКА ---
-        window.addEventListener('pointerdown', (e) => {
-            const mouse = new THREE.Vector2(
-                (e.clientX / window.innerWidth) * 2 - 1,
-                -(e.clientY / window.innerHeight) * 2 + 1
-            );
-            
-            const raycaster = new THREE.Raycaster();
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(snowmen, true);
-
-            if (intersects.length > 0) {
-                let hit = intersects[0].object;
-                while(hit.parent !== scene) hit = hit.parent;
-
-                if (hit.userData.id === questions[currentQ].ok) {
-                    score++;
-                    document.getElementById('scoreText').innerText = "Doğru: " + score;
-                    
-                    // Анимация победы (снеговик прыгает)
-                    new TWEEN.Tween(hit.position).to({y: 1}, 200).easing(TWEEN.Easing.Quadratic.Out)
-                        .chain(new TWEEN.Tween(hit.position).to({y: 0}, 200).onComplete(() => {
-                            currentQ = (currentQ + 1) % questions.length;
-                            initRound();
-                        })).start();
-                } else {
-                    // Анимация ошибки (трясется)
-                    new TWEEN.Tween(hit.position).to({x: hit.userData.originalX + 0.2}, 50).repeat(3).yoyo(true).start();
-                }
-            }
-        });
-
-        // --- ЦИКЛ ИГРЫ ---
-        function animate(time) {
-            requestAnimationFrame(animate);
-            TWEEN.update(time);
-            
-            // Легкое "дыхание" снеговиков
-            snowmen.forEach((s, i) => {
-                s.rotation.y = Math.sin(time * 0.001 + i) * 0.1;
-            });
-            
-            renderer.render(scene, camera);
-        }
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        initRound();
-        animate();
-    </script>
+    
+    <script src="questions.js"></script>
+    <script src="game.js"></script>
 </body>
 </html>
