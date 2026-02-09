@@ -1,0 +1,69 @@
+/* ===== ОБЩЕЕ ===== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: linear-gradient(#bcdcff, #eaf6ff);
+  font-family: "Comic Sans MS", "Arial Rounded MT Bold", Arial, sans-serif;
+}
+
+/* ===== ВЕРХНИЙ ИНТЕРФЕЙС ===== */
+#ui {
+  position: absolute;
+  top: 20px;
+  width: 100%;
+  text-align: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+#question {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 16px 28px;
+  border-radius: 22px;
+  font-size: 20px;
+  color: #2c3e50;
+  box-shadow:
+    0 6px 0 #dbeeff,
+    0 10px 20px rgba(0,0,0,0.15);
+}
+
+/* ===== СТАРТОВЫЙ ЭКРАН ===== */
+#start {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(#bcdcff, #eaf6ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+#startBtn {
+  font-size: 26px;
+  padding: 20px 44px;
+  border-radius: 40px;
+  border: none;
+  background: white;
+  color: #2c3e50;
+  cursor: pointer;
+  box-shadow:
+    0 8px 0 #dbeeff,
+    0 14px 25px rgba(0,0,0,0.2);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+#startBtn:hover {
+  transform: translateY(-2px);
+}
+
+#startBtn:active {
+  transform: translateY(4px);
+  box-shadow:
+    0 4px 0 #dbeeff,
+    0 8px 15px rgba(0,0,0,0.2);
+}
