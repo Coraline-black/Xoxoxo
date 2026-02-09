@@ -43,3 +43,17 @@ body {
   background: white;
   box-shadow: 0 8px 0 #dbeeff, 0 14px 25px rgba(0,0,0,0.2);
 }
+
+#crosshair {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  margin-top: -9px;
+  border: 2px solid rgba(0,0,0,0.4);
+  border-radius: 50%;
+  z-index: 30;
+  pointer-events: none;
+}
