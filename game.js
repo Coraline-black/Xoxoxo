@@ -1,4 +1,4 @@
-let scene, camera, renderer, currentQuestion, snowmen = [], score = 0;
+let scene, camera, renderer, snowmen = [], currentQ, score = 0;
 
 function init() {
     scene = new THREE.Scene();
@@ -10,136 +10,111 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    // Свет
-    const sun = new THREE.DirectionalLight(0xffffff, 1);
-    sun.position.set(5, 10, 5);
-    scene.add(sun, new THREE.AmbientLight(0xffffff, 0.4));
+    // Освещение (Мягкое мультяшное)
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(5, 10, 5);
+    scene.add(light, new THREE.AmbientLight(0xffffff, 0.5));
 
-    // Дизайн карты: Снег и здания
-    createEnvironment();
-    
-    // Руки героя (вид от 1 лица)
+    createMap();
     createHands();
-
-    camera.position.set(0, 1.6, 3);
-    
     nextRound();
     animate();
 }
 
-function createEnvironment() {
+function createMap() {
     // Земля
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshStandardMaterial({color: 0xffffff}));
     ground.rotation.x = -Math.PI/2;
     scene.add(ground);
 
-    // Здания (простые мультяшные кубы)
-    for(let i=0; i<10; i++) {
-        const h = 2 + Math.random() * 5;
-        const b = new THREE.Mesh(new THREE.BoxGeometry(2, h, 2), new THREE.MeshStandardMaterial({color: 0xbbdefb}));
-        b.position.set(Math.random()*20-10, h/2, -Math.random()*15-5);
-        scene.add(b);
-    }
-
-    // Падающий снег (частицы)
-    const snowGeo = new THREE.BufferGeometry();
-    const snowCoords = [];
-    for(let i=0; i<1000; i++) {
-        snowCoords.push(Math.random()*20-10, Math.random()*10, Math.random()*20-10);
-    }
-    snowGeo.setAttribute('position', new THREE.Float32BufferAttribute(snowCoords, 3));
-    const snowPoints = new THREE.Points(snowGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.1}));
-    scene.add(snowPoints);
-    this.snowLayer = snowPoints;
+    // Падающий снег
+    const points = [];
+    for(let i=0; i<1500; i++) points.push(new THREE.Vector3(Math.random()*20-10, Math.random()*10, Math.random()*20-10));
+    const snowGeo = new THREE.BufferGeometry().setFromPoints(points);
+    const snowMat = new THREE.PointsMaterial({color: 0xffffff, size: 0.05});
+    this.snowSystem = new THREE.Points(snowGeo, snowMat);
+    scene.add(this.snowSystem);
 }
 
 function createHands() {
-    const handMat = new THREE.MeshStandardMaterial({color: 0x5d4037});
-    const handL = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.4), handMat);
-    handL.position.set(-0.5, 0.8, 2);
-    handL.rotation.x = Math.PI/3;
-    camera.add(handL);
+    const hand = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.5), new THREE.MeshStandardMaterial({color: 0x5d4037}));
+    hand.position.set(0.5, -0.5, -0.5);
+    hand.rotation.x = Math.PI/4;
+    camera.add(hand);
     scene.add(camera);
 }
 
-function createDerzkiySnowman(x, text, id) {
+function createTeenSnowman(x, text, id) {
     const group = new THREE.Group();
-    const snowMat = new THREE.MeshStandardMaterial({color: 0xfaffff, roughness: 1});
+    const mat = new THREE.MeshStandardMaterial({color: 0xfaffff});
     
-    // Дерзкая осанка
-    const body = new THREE.Mesh(new THREE.SphereGeometry(0.6, 16, 16), snowMat);
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 16), snowMat);
-    head.position.y = 1.3; head.position.z = 0.1;
-    group.add(body, head);
+    // Тело и Голова (Дерзкий наклон вперед)
+    const b = new THREE.Mesh(new THREE.SphereGeometry(0.6), mat);
+    const h = new THREE.Mesh(new THREE.SphereGeometry(0.4), mat);
+    h.position.set(0, 1.3, 0.2); 
+    group.add(b, h);
 
-    // Уставшие веки (Твоя просьба)
-    const eyeMat = new THREE.MeshStandardMaterial({color: 0x222222});
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), eyeMat);
-    eye.scale.y = 0.3; // Прищуренный взгляд
-    
-    const e1 = eye.clone(); e1.position.set(-0.15, 1.4, 0.45);
-    const e2 = eye.clone(); e2.position.set(0.15, 1.4, 0.45);
+    // УСТАЛЫЕ ВЕКИ (Твоя просьба)
+    const eyelidGeo = new THREE.SphereGeometry(0.06, 16, 16);
+    const darkMat = new THREE.MeshStandardMaterial({color: 0x333333});
+    const e1 = new THREE.Mesh(eyelidGeo, darkMat);
+    e1.scale.y = 0.3; e1.position.set(-0.15, 1.45, 0.5);
+    const e2 = e1.clone(); e2.position.set(0.15, 1.45, 0.5);
     group.add(e1, e2);
 
-    // Нос
-    const nose = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.2), new THREE.MeshStandardMaterial({color: "orange"}));
-    nose.position.set(0, 1.3, 0.5); nose.rotation.x = Math.PI/2;
-    group.add(nose);
-
-    // Табличка
+    // Текст
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = 256; canvas.height = 64;
-    ctx.fillStyle = 'white'; ctx.fillRect(0,0,256,64);
-    ctx.fillStyle = 'black'; ctx.font = '32px Arial'; ctx.textAlign = 'center';
-    ctx.fillText(text, 128, 45);
+    canvas.width = 256; canvas.height = 100;
+    ctx.fillStyle = 'white'; ctx.fillRect(0,0,256,100);
+    ctx.fillStyle = '#01579b'; ctx.font = 'bold 40px Arial'; ctx.textAlign = 'center';
+    ctx.fillText(text, 128, 65);
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({map: new THREE.CanvasTexture(canvas)}));
-    sprite.position.y = 2; sprite.scale.set(1.5, 0.4, 1);
+    sprite.position.y = 2.2; sprite.scale.set(1.5, 0.6, 1);
     group.add(sprite);
 
-    group.position.set(x, 0, -3);
+    group.position.set(x, 0, -4);
     group.userData = {id: id};
     scene.add(group);
     return group;
 }
 
 function nextRound() {
-    currentQuestion = gameData.getRandomQuestion();
-    document.getElementById('qText').innerText = currentQuestion.q;
+    // ИИ выбирает: вопрос из учебника или свой
+    currentQ = (score > 40) ? SnowAI.generateQuestion() : gameData.getQuestion();
+    document.getElementById('qText').innerText = currentQ.q;
+    
     snowmen.forEach(s => scene.remove(s));
-    snowmen = [];
-    const pos = [-2, 0, 2];
-    currentQuestion.a.forEach((txt, i) => {
-        snowmen.push(createDerzkiySnowman(pos[i], txt, i));
-    });
+    snowmen = [createTeenSnowman(-2.2, currentQ.a[0], 0), createTeenSnowman(0, currentQ.a[1], 1), createTeenSnowman(2.2, currentQ.a[2], 2)];
 }
 
 window.addEventListener('pointerdown', (e) => {
-    const mouse = new THREE.Vector2((e.clientX/window.innerWidth)*2-1, -(e.clientY/window.innerHeight)*2+1);
+    const m = new THREE.Vector2((e.clientX/window.innerWidth)*2-1, -(e.clientY/window.innerHeight)*2+1);
     const ray = new THREE.Raycaster();
-    ray.setFromCamera(mouse, camera);
+    ray.setFromCamera(m, camera);
     const hits = ray.intersectObjects(snowmen, true);
 
     if(hits.length > 0) {
         let obj = hits[0].object;
         while(obj.parent !== scene) obj = obj.parent;
         
-        if(obj.userData.id === currentQuestion.ok) {
+        if(obj.userData.id === currentQ.ok) {
             score += 10;
-            document.getElementById('score').innerText = "Puan: " + score;
+            document.getElementById('score-board').innerText = "Puan: " + score;
             nextRound();
         } else {
-            new TWEEN.Tween(obj.rotation).to({z: 0.2}, 100).repeat(3).yoyo(true).start();
+            new TWEEN.Tween(obj.rotation).to({z: 0.3}, 100).repeat(3).yoyo(true).start();
         }
     }
 });
 
-function animate(time) {
+function animate(t) {
     requestAnimationFrame(animate);
-    TWEEN.update(time);
-    if(this.snowLayer) this.snowLayer.position.y -= 0.01;
-    if(this.snowLayer && this.snowLayer.position.y < -5) this.snowLayer.position.y = 0;
+    TWEEN.update(t);
+    if(this.snowSystem) {
+        this.snowSystem.position.y -= 0.02;
+        if(this.snowSystem.position.y < -5) this.snowSystem.position.y = 5;
+    }
     renderer.render(scene, camera);
 }
-
 init();
