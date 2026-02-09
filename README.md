@@ -1,1 +1,9 @@
-Educational 3D Game: Snowball Turkish. Learn 'Doğa Olayları' with fun!
+# ❄️ Snowball Learning: Stylized Edutainment
+Профессиональный образовательный 3D-проект для изучения турецкого языка.
+
+### 💎 Ценность проекта:
+- **Движок:** WebGL 2.0 (High-End Graphics)
+- **Стиль:** Stylized Toon (мягкое освещение, кастомные шейдеры)
+- **Механика:** First-Person Shooter с системой лингвистических задач.
+- **Оптимизация:** Работает на мобильных устройствах и десктопе.
+
