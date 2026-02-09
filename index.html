@@ -3,34 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Snowball Learning: Derzkiy Edition</title>
+    <title>Snowball AI Learning</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #b3e5fc; font-family: 'Arial', sans-serif; }
-        #game-ui {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; display: flex; flex-direction: column; align-items: center;
+        body { margin: 0; overflow: hidden; background: #b3e5fc; font-family: 'Arial Rounded MT Bold', sans-serif; }
+        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+        .q-card { 
+            margin: 20px auto; width: 85%; background: rgba(255,255,255,0.9);
+            padding: 20px; border-radius: 25px; border: 4px solid #0288d1;
+            text-align: center; box-shadow: 0 10px 0 #01579b;
         }
-        .question-area {
-            margin-top: 30px; background: rgba(255,255,255,0.85);
-            padding: 20px; border-radius: 30px; border: 4px solid #0288d1;
-            box-shadow: 0 8px 15px rgba(0,0,0,0.1); width: 80%; text-align: center;
-        }
-        h2 { color: #01579b; margin: 0; font-size: 22px; }
-        #score { position: absolute; bottom: 20px; right: 20px; font-weight: bold; color: white; text-shadow: 1px 1px 4px rgba(0,0,0,0.5); }
+        h2 { color: #01579b; font-size: 22px; margin: 0; }
+        #score-board { position: absolute; bottom: 20px; left: 20px; color: white; font-size: 18px; text-shadow: 2px 2px 4px #000; }
     </style>
 </head>
 <body>
-    <div id="game-ui">
-        <div class="question-area">
-            <h2 id="qText">Yükleniyor...</h2>
-        </div>
-        <div id="score">Puan: 0</div>
+    <div id="ui">
+        <div class="q-card"><h2 id="qText">Yükleniyor...</h2></div>
+        <div id="score-board">Puan: 0</div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
     
     <script src="questions.js"></script>
+    <script src="ai_logic.js"></script>
     <script src="game.js"></script>
 </body>
 </html>
